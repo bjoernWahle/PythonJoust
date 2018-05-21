@@ -9,7 +9,7 @@ pygame.init()
 ENEMY_KILL_SCORE = 10
 EGG_SCORE = 10
 ENEMY_COUNT = 6
-
+MAX_SPEED = 10
 
 def load_sliced_sprites(w, h, filename):
     # returns a list of image frames sliced from file
@@ -37,27 +37,27 @@ def get_keyset(id):
 
 
 class Egg(pygame.sprite.Sprite):
-    def __init__(self, eggimages, x, y, xspeed, yspeed):
+    def __init__(self, eggimages, x, y, x_speed, y_speed):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
         self.images = eggimages
         self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.xspeed = xspeed
-        self.yspeed = yspeed
-        self.rect.top_left = (x, y)
+        self.x_speed = x_speed
+        self.y_speed = y_speed
+        self.rect.topleft = (x, y)
         self.right = self.rect.right
         self.top = self.rect.top
         self.next_update_time = 0
 
     def move(self):
         # gravity
-        self.yspeed += 0.4
-        if self.yspeed > 10:
-            self.yspeed = 10
-        self.y += self.yspeed
-        self.x += self.xspeed
+        self.y_speed += 0.4
+        if self.y_speed > 10:
+            self.y_speed = 10
+        self.y += self.y_speed
+        self.x += self.x_speed
         if self.y > 570:  # hit lava
             self.kill()
 
@@ -69,9 +69,9 @@ class Egg(pygame.sprite.Sprite):
             self.rect.topleft = (self.x, self.y)
             collided_platforms = pygame.sprite.spritecollide(self, platforms, False,
                                                              collided=pygame.sprite.collide_mask)
-            if (((self.y > 40 and self.y < 45) or (self.y > 250 and self.y < 255)) and (
+            if (((40 < self.y < 45) or (250 < self.y < 255)) and (
                     self.x < 0 or self.x > 860)):  # catch when it is rolling between screens
-                self.yspeed = 0
+                self.y_speed = 0
             else:
                 collided = False
                 for collided_platform in collided_platforms:
@@ -87,23 +87,23 @@ class Egg(pygame.sprite.Sprite):
         if self.y < (collided_thing.y - 20) and (
                 ((collided_thing.x - 40) < self.x < (collided_thing.rect.right - 10))):
             # coming in from the top?
-            self.yspeed = 0
+            self.y_speed = 0
             self.y = collided_thing.y - self.rect.height + 1
         elif self.x < collided_thing.x:
             # colliding from left side
             collided = True
             self.x = self.x - 10
-            self.xspeed = -2
+            self.x_speed = -2
         elif self.x > collided_thing.rect.right - 50:
             # colliding from right side
             collided = True
             self.x = self.x + 10
-            self.xspeed = 2
+            self.x_speed = 2
         elif self.y > collided_thing.y:
             # colliding from bottom
             collided = True
             self.y = self.y + 10
-            self.yspeed = 0
+            self.y_speed = 0
         return collided
 
 
@@ -120,7 +120,7 @@ class Platform(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, enemyimages, spawnimages, unmountedimages, startPos, enemyType):
+    def __init__(self, enemyimages, spawnimages, unmountedimages, start_pos, enemyType):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
         self.images = enemyimages
         self.spawnimages = spawnimages
@@ -131,21 +131,21 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.next_update_time = 0
         self.next_anim_time = 0
-        self.x = startPos[0]
-        self.y = startPos[1]
+        self.x = start_pos[0]
+        self.y = start_pos[1]
         self.flap = 0
-        self.facingRight = True
-        self.xspeed = random.randint(3, 10)
-        self.targetXSpeed = 10
-        self.yspeed = 0
+        self.facing_right = True
+        self.x_speed = random.randint(3, 10)
+        self.target_x_speed = 10
+        self.y_speed = 0
         self.walking = True
-        self.flapCount = 0
+        self.flap_count = 0
         self.spawning = True
         self.alive = True
 
     def killed(self, egg_list, egg_images):
         # make an egg appear here
-        egg_list.add(Egg(egg_images, self.x, self.y, self.xspeed, self.yspeed))
+        egg_list.add(Egg(egg_images, self.x, self.y, self.x_speed, self.y_speed))
         self.alive = False
 
     def update(self, current_time, keys, platforms, god):
@@ -160,27 +160,27 @@ class Enemy(pygame.sprite.Sprite):
                     self.spawning = False
             else:
                 # see if we need to accelerate
-                if abs(self.xspeed) < self.targetXSpeed:
-                    self.xspeed += self.xspeed / abs(self.xspeed) / 2
+                if abs(self.x_speed) < self.target_x_speed:
+                    self.x_speed += self.x_speed / abs(self.x_speed) / 2
                 # work out if flapping...
                 if self.flap < 1:
-                    if (random.randint(0, 10) > 8 or self.y > 450):  # flap to avoid lava
-                        self.yspeed -= 3
+                    if random.randint(0, 10) > 8 or self.y > 450:  # flap to avoid lava
+                        self.y_speed -= 3
                         self.flap = 3
                 else:
                     self.flap -= 1
 
-                self.x = self.x + self.xspeed
-                self.y = self.y + self.yspeed
+                self.x = self.x + self.x_speed
+                self.y = self.y + self.y_speed
                 if not self.walking:
-                    self.yspeed += 0.4
-                if self.yspeed > 10:
-                    self.yspeed = 10
-                if self.yspeed < -10:
-                    self.yspeed = -10
+                    self.y_speed += 0.4
+                if self.y_speed > MAX_SPEED:
+                    self.y_speed = MAX_SPEED
+                if self.y_speed < -MAX_SPEED:
+                    self.y_speed = -MAX_SPEED
                 if self.y < 0:  # can't go off the top
                     self.y = 0
-                    self.yspeed = 2
+                    self.y_speed = 2
                 if self.y > 570:  # hit lava
                     self.kill()
 
@@ -196,21 +196,21 @@ class Enemy(pygame.sprite.Sprite):
                         self.kill()
                 self.rect.topleft = (self.x, self.y)
                 # check for platform collision
-                collidedPlatforms = pygame.sprite.spritecollide(self, platforms, False,
-                                                                collided=pygame.sprite.collide_mask)
+                collided_platforms = pygame.sprite.spritecollide(self, platforms, False,
+                                                                 collided=pygame.sprite.collide_mask)
                 self.walking = False
-                if (((self.y > 40 and self.y < 45) or (self.y > 220 and self.y < 225)) and (
+                if (((40 < self.y < 45) or (220 < self.y < 225)) and (
                         self.x < 0 or self.x > 860)):  # catch when it is walking between screens
                     self.walking = True
-                    self.yspeed = 0
+                    self.y_speed = 0
                 else:
-                    for collidedPlatform in collidedPlatforms:
-                        self.bounce(collidedPlatform)
+                    for collided_platform in collided_platforms:
+                        self.bounce(collided_platform)
                 self.rect.topleft = (self.x, self.y)
                 if self.walking:
                     if self.next_anim_time < current_time:
-                        if self.xspeed != 0:
-                            self.next_anim_time = current_time + 100 / abs(self.xspeed)
+                        if self.x_speed != 0:
+                            self.next_anim_time = current_time + 100 / abs(self.x_speed)
                             self.frame_num += 1
                             if self.frame_num > 3:
                                 self.frame_num = 0
@@ -226,47 +226,47 @@ class Enemy(pygame.sprite.Sprite):
                 else:
                     # show the unmounted sprite
                     self.image = self.unmountedimages[self.frame_num]
-                if self.xspeed < 0 or (self.xspeed == 0 and self.facingRight == False):
+                if self.x_speed < 0 or (self.x_speed == 0 and self.facing_right == False):
                     self.image = pygame.transform.flip(self.image, True, False)
-                    self.facingRight = False
+                    self.facing_right = False
                 else:
-                    self.facingRight = True
+                    self.facing_right = True
 
-    def bounce(self, collidedThing):
+    def bounce(self, collided_thing):
         collided = False
-        if self.y < (collidedThing.y - 20) and (
-                (self.x > (collidedThing.x - 40) and self.x < (collidedThing.rect.right - 10))):
+        if self.y < (collided_thing.y - 20) and (
+                ((collided_thing.x - 40) < self.x < (collided_thing.rect.right - 10))):
             # coming in from the top?
             self.walking = True
-            self.yspeed = 0
-            self.y = collidedThing.y - self.rect.height + 3
-        elif self.x < collidedThing.x:
+            self.y_speed = 0
+            self.y = collided_thing.y - self.rect.height + 3
+        elif self.x < collided_thing.x:
             # colliding from left side
             collided = True
             self.x = self.x - 10
-            self.xspeed = -2
-        elif self.x > collidedThing.rect.right - 50:
+            self.x_speed = -2
+        elif self.x > collided_thing.rect.right - 50:
             # colliding from right side
             collided = True
             self.x = self.x + 10
-            self.xspeed = 2
-        elif self.y > collidedThing.y:
+            self.x_speed = 2
+        elif self.y > collided_thing.y:
             # colliding from bottom
             collided = True
             self.y = self.y + 10
-            self.yspeed = 0
+            self.y_speed = 0
         return collided
 
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, birdimages, spawnimages, playerUnmountedimages, spawn_x, spawn_y, id):
+    def __init__(self, birdimages, spawnimages, player_unmounted_images, spawn_x, spawn_y, id):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
         self.id = id
         self.spawn_x = spawn_x
         self.spawn_y = spawn_y
         self.images = birdimages
-        self.unmountedimages = playerUnmountedimages
+        self.unmounted_images = player_unmounted_images
         self.spawnimages = spawnimages
         self.frame_num = 2
         self.image = self.images[self.frame_num]
@@ -276,12 +276,12 @@ class Player(pygame.sprite.Sprite):
         self.x = spawn_x
         self.y = spawn_y
         self.facing_right = True
-        self.xspeed = 0
-        self.yspeed = 0
-        self.targetXSpeed = 10
+        self.x_speed = 0
+        self.y_speed = 0
+        self.targetx_speed = 10
         self.flap = False
         self.walking = True
-        self.playerChannel = pygame.mixer.Channel(0)
+        self.player_channel = pygame.mixer.Channel(0)
         self.flapsound = pygame.mixer.Sound("joustflaedit.wav")
         self.skidsound = pygame.mixer.Sound("joustski.wav")
         self.bumpsound = pygame.mixer.Sound("joustthu.wav")
@@ -313,20 +313,20 @@ class Player(pygame.sprite.Sprite):
         # check for platform collision
         collided_platforms = pygame.sprite.spritecollide(self, platforms, False, collided=pygame.sprite.collide_mask)
         self.walking = False
-        if (((self.y > 40 and self.y < 45) or (self.y > 250 and self.y < 255)) and (
+        if (((40 < self.y < 45) or (250 < self.y < 255)) and (
                 self.x < 0 or self.x > 860)):  # catch when it is walking between screens
             self.walking = True
-            self.yspeed = 0
+            self.y_speed = 0
         else:
             collided = False
             for collided_platform in collided_platforms:
                 collided = self.bounce(collided_platform)
             if collided:
                 # play a bump sound
-                self.playerChannel.play(self.bumpsound)
+                self.player_channel.play(self.bumpsound)
         # check for egg collission
         collided_eggs = pygame.sprite.spritecollide(self, egg_list, False, collided=pygame.sprite.collide_mask)
-        if (len(collided_eggs) > 0):
+        if len(collided_eggs) > 0:
             for collided_egg in collided_eggs:
                 collided_egg.kill()
                 self.score += EGG_SCORE
@@ -346,31 +346,31 @@ class Player(pygame.sprite.Sprite):
                         self.spawning = False
                 else:
                     if keys[self.keys['left']]:
-                        if self.xspeed > -10:
-                            self.xspeed -= 0.5
+                        if self.x_speed > -10:
+                            self.x_speed -= 0.5
                     elif keys[self.keys['right']]:
-                        if self.xspeed < 10:
-                            self.xspeed += 0.5
+                        if self.x_speed < 10:
+                            self.x_speed += 0.5
                     if keys[self.keys['space']]:
                         if not self.flap:
-                            self.playerChannel.stop()
+                            self.player_channel.stop()
                             self.flapsound.play(0)
-                            if self.yspeed > -250:
-                                self.yspeed -= 3
+                            if self.y_speed > -250:
+                                self.y_speed -= 3
                             self.flap = True
                     else:
                         self.flap = False
-                    self.x = self.x + self.xspeed
-                    self.y = self.y + self.yspeed
+                    self.x = self.x + self.x_speed
+                    self.y = self.y + self.y_speed
                     if not self.walking:
-                        self.yspeed += 0.4
-                    if self.yspeed > 10:
-                        self.yspeed = 10
-                    if self.yspeed < -10:
-                        self.yspeed = -10
+                        self.y_speed += 0.4
+                    if self.y_speed > 10:
+                        self.y_speed = 10
+                    if self.y_speed < -10:
+                        self.y_speed = -10
                     if self.y < 0:
                         self.y = 0
-                        self.yspeed = 2
+                        self.y_speed = 2
                     if self.y > 570:
                         self.die()
                     if self.x < -48:
@@ -383,21 +383,21 @@ class Player(pygame.sprite.Sprite):
                     if self.walking:
                         # if walking
                         if self.next_anim_time < current_time:
-                            if self.xspeed != 0:
-                                if (self.xspeed > 5 and keys[pygame.K_LEFT]) or (
-                                        self.xspeed < -5 and keys[pygame.K_RIGHT]):
+                            if self.x_speed != 0:
+                                if (self.x_speed > 5 and keys[pygame.K_LEFT]) or (
+                                        self.x_speed < -5 and keys[pygame.K_RIGHT]):
 
                                     if self.frame_num != 4:
-                                        self.playerChannel.play(self.skidsound)
+                                        self.player_channel.play(self.skidsound)
                                     self.frame_num = 4
                                 else:
-                                    self.next_anim_time = current_time + 200 / abs(self.xspeed)
+                                    self.next_anim_time = current_time + 200 / abs(self.x_speed)
                                     self.frame_num += 1
                                     if self.frame_num > 3:
                                         self.frame_num = 0
                             elif self.frame_num == 4:
                                 self.frame_num = 3
-                                self.playerChannel.stop()
+                                self.player_channel.stop()
 
                         self.image = self.images[self.frame_num]
                     else:
@@ -406,7 +406,7 @@ class Player(pygame.sprite.Sprite):
 
                         else:
                             self.image = self.images[5]
-                    if self.xspeed < 0 or (self.xspeed == 0 and self.facing_right == False):
+                    if self.x_speed < 0 or (self.x_speed == 0 and self.facing_right == False):
                         self.image = pygame.transform.flip(self.image, True, False)
                         self.facing_right = False
                     else:
@@ -414,30 +414,30 @@ class Player(pygame.sprite.Sprite):
             elif self.alive == 1:
                 # unmounted player, lone bird
                 # see if we need to accelerate
-                if abs(self.xspeed) < self.targetXSpeed:
-                    if abs(self.xspeed) > 0:
-                        self.xspeed += self.xspeed / abs(self.xspeed) / 2
+                if abs(self.x_speed) < self.targetx_speed:
+                    if abs(self.x_speed) > 0:
+                        self.x_speed += self.x_speed / abs(self.x_speed) / 2
                     else:
-                        self.xspeed += 0.5
+                        self.x_speed += 0.5
                 # work out if flapping...
                 if self.flap < 1:
                     if random.randint(0, 10) > 8 or self.y > 450:  # flap to avoid lava
-                        self.yspeed -= 3
+                        self.y_speed -= 3
                         self.flap = 3
                 else:
                     self.flap -= 1
 
-                self.x = self.x + self.xspeed
-                self.y = self.y + self.yspeed
+                self.x = self.x + self.x_speed
+                self.y = self.y + self.y_speed
                 if not self.walking:
-                    self.yspeed += 0.4
-                if self.yspeed > 10:
-                    self.yspeed = 10
-                if self.yspeed < -10:
-                    self.yspeed = -10
+                    self.y_speed += 0.4
+                if self.y_speed > 10:
+                    self.y_speed = 10
+                if self.y_speed < -10:
+                    self.y_speed = -10
                 if self.y < 0:  # can't go off the top
                     self.y = 0
-                    self.yspeed = 2
+                    self.y_speed = 2
 
                 if self.x < -48:  # off the left. remove entirely
                     self.image = self.images[7]
@@ -450,20 +450,20 @@ class Player(pygame.sprite.Sprite):
                 self.rect.topleft = (self.x, self.y)
                 # check for platform collision
                 collided_platforms = pygame.sprite.spritecollide(self, platforms, False,
-                                                                collided=pygame.sprite.collide_mask)
+                                                                 collided=pygame.sprite.collide_mask)
                 self.walking = False
                 if (((self.y > 40 and self.y < 45) or (self.y > 220 and self.y < 225)) and (
                         self.x < 0 or self.x > 860)):  # catch when it is walking between screens
                     self.walking = True
-                    self.yspeed = 0
+                    self.y_speed = 0
                 else:
                     for collided_platform in collided_platforms:
                         self.bounce(collided_platform)
                 self.rect.topleft = (self.x, self.y)
                 if self.walking:
                     if self.next_anim_time < current_time:
-                        if self.xspeed != 0:
-                            self.next_anim_time = current_time + 100 / abs(self.xspeed)
+                        if self.x_speed != 0:
+                            self.next_anim_time = current_time + 100 / abs(self.x_speed)
                             self.frame_num += 1
                             if self.frame_num > 3:
                                 self.frame_num = 0
@@ -474,8 +474,8 @@ class Player(pygame.sprite.Sprite):
                         self.frame_num = 6
                     else:
                         self.frame_num = 5
-                self.image = self.unmountedimages[self.frame_num]
-                if self.xspeed < 0 or (self.xspeed == 0 and self.facing_right == False):
+                self.image = self.unmounted_images[self.frame_num]
+                if self.x_speed < 0 or (self.x_speed == 0 and self.facing_right == False):
                     self.image = pygame.transform.flip(self.image, True, False)
                     self.facing_right = False
                 else:
@@ -487,26 +487,26 @@ class Player(pygame.sprite.Sprite):
     def bounce(self, collided_thing):
         collided = False
         if self.y < (collided_thing.y - 20) and (
-                (self.x > (collided_thing.x - 40) and self.x < (collided_thing.rect.right - 10))):
+                ((collided_thing.x - 40) < self.x < (collided_thing.rect.right - 10))):
             # coming in from the top?
             self.walking = True
-            self.yspeed = 0
+            self.y_speed = 0
             self.y = collided_thing.y - self.rect.height + 1
         elif self.x < collided_thing.x:
             # colliding from left side
             collided = True
             self.x = self.x - 10
-            self.xspeed = -2
+            self.x_speed = -2
         elif self.x > collided_thing.rect.right - 50:
             # colliding from right side
             collided = True
             self.x = self.x + 10
-            self.xspeed = 2
+            self.x_speed = 2
         elif self.y > collided_thing.y:
             # colliding from bottom
             collided = True
             self.y = self.y + 10
-            self.yspeed = 0
+            self.y_speed = 0
         return collided
 
     def die(self):
@@ -520,8 +520,8 @@ class Player(pygame.sprite.Sprite):
         self.x = self.spawn_x
         self.y = self.spawn_y
         self.facing_right = True
-        self.xspeed = 0
-        self.yspeed = 0
+        self.x_speed = 0
+        self.y_speed = 0
         self.flap = False
         self.walking = True
         self.spawning = True
@@ -570,8 +570,8 @@ def draw_lava2(screen):
     return lavaRect
 
 
-def draw_lives(lives, screen, lifeimage, playerId):
-    if playerId == 1:
+def draw_lives(lives, screen, lifeimage, player_id):
+    if player_id == 1:
         startx = 375
     else:
         startx = 612
@@ -580,8 +580,8 @@ def draw_lives(lives, screen, lifeimage, playerId):
         screen.blit(lifeimage, [x, 570])
 
 
-def draw_score(score, screen, digits, playerId):
-    if playerId == 1:
+def draw_score(score, screen, digits, player_id):
+    if player_id == 1:
         x = 353
     else:
         x = 590
@@ -604,6 +604,19 @@ def check_game_end(playerbird, enemies):
     return False
 
 
+def init_platforms():
+    platform_images = load_platforms()
+    plat1 = Platform(platform_images[0], 200,550)
+    plat2 = Platform(platform_images[1], 350, 395)
+    plat3 = Platform(platform_images[2], 350, 130)
+    plat4 = Platform(platform_images[3], 0, 100)
+    plat5 = Platform(platform_images[4], 759, 100)
+    plat6 = Platform(platform_images[5], 0, 310)
+    plat7 = Platform(platform_images[6], 759, 310)
+    plat8 = Platform(platform_images[7], 600, 290)
+    return [plat1, plat2, plat3, plat4, plat5, plat6, plat7, plat8]
+
+
 def main():
     window = pygame.display.set_mode((900, 650))
     pygame.display.set_caption('Joust')
@@ -618,29 +631,19 @@ def main():
     enemyimages = load_sliced_sprites(60, 58, "enemies2.png")
     spawnimages = load_sliced_sprites(60, 60, "spawn1.png")
     unmountedimages = load_sliced_sprites(60, 60, "unmounted.png")
-    playerUnmountedimages = load_sliced_sprites(60, 60, "playerUnmounted.png")
+    player_unmounted_images = load_sliced_sprites(60, 60, "playerUnmounted.png")
     eggimages = load_sliced_sprites(40, 33, "egg.png")
     lifeimage = pygame.image.load("life.png")
     lifeimage = lifeimage.convert_alpha()
     digits = load_sliced_sprites(21, 21, "digits.png")
-    platform_images = load_platforms()
-    playerbird1 = Player(birdimages, spawnimages, playerUnmountedimages, 300, 450, 1)
-    playerbird2 = Player(birdimages, spawnimages, playerUnmountedimages, 600, 450, 2)
+    player1 = Player(birdimages, spawnimages, player_unmounted_images, 300, 450, 1)
+    player2 = Player(birdimages, spawnimages, player_unmounted_images, 600, 450, 2)
+    player.add(player1)
+    player.add(player2)
     god = godmode()
     god_sprite.add(godmode())
     spawn_points = [[690, 248], [420, 500], [420, 80], [50, 255]]
-    plat1 = Platform(platform_images[0], 200,
-                     550)  # we create each platform by sending it the relevant platform image, the x position of the platform and the y position
-    plat2 = Platform(platform_images[1], 350, 395)
-    plat3 = Platform(platform_images[2], 350, 130)
-    plat4 = Platform(platform_images[3], 0, 100)
-    plat5 = Platform(platform_images[4], 759, 100)
-    plat6 = Platform(platform_images[5], 0, 310)
-    plat7 = Platform(platform_images[6], 759, 310)
-    plat8 = Platform(platform_images[7], 600, 290)
-    player.add(playerbird1)
-    player.add(playerbird2)
-    platforms.add(plat1, plat2, plat3, plat4, plat5, plat6, plat7, plat8)
+    platforms.add(init_platforms())
     pygame.display.update()
     next_spawn_time = pygame.time.get_ticks() + 2000
     enemies_to_spawn = ENEMY_COUNT
@@ -650,7 +653,7 @@ def main():
         # make enemies
         if current_time > next_spawn_time and enemies_to_spawn > 0:
             enemy_list, enemies_to_spawn = generate_enemies(enemyimages, spawnimages, unmountedimages, enemy_list,
-                                                         spawn_points, enemies_to_spawn)
+                                                            spawn_points, enemies_to_spawn)
             next_spawn_time = current_time + 5000
         keys = pygame.key.get_pressed()
         pygame.event.clear()
@@ -664,7 +667,7 @@ def main():
         platforms.update()
         enemy_list.update(current_time, keys, platforms, god)
         egg_list.update(current_time, platforms)
-        enemiesRects = enemy_list.draw(screen)
+        enemies_rects = enemy_list.draw(screen)
         if god.on:
             godrect = god_sprite.draw(screen)
         else:
@@ -674,15 +677,15 @@ def main():
         lava_rect = draw_lava(screen)
         plat_rects = platforms.draw(screen)
         lavarect2 = draw_lava2(screen)
-        draw_lives(playerbird1.lives, screen, lifeimage, 1)
-        draw_lives(playerbird2.lives, screen, lifeimage, 2)
-        draw_score(playerbird1.score, screen, digits, 1)
-        draw_score(playerbird2.score, screen, digits, 2)
+        draw_lives(player1.lives, screen, lifeimage, 1)
+        draw_lives(player2.lives, screen, lifeimage, 2)
+        draw_score(player1.score, screen, digits, 1)
+        draw_score(player2.score, screen, digits, 2)
         pygame.display.update(player_rect)
         pygame.display.update(lava_rect)
         pygame.display.update(lavarect2)
         pygame.display.update(plat_rects)
-        pygame.display.update(enemiesRects)
+        pygame.display.update(enemies_rects)
         pygame.display.update(egg_rects)
         pygame.display.update(godrect)
         player.clear(screen, clear_surface)
@@ -690,7 +693,7 @@ def main():
         egg_list.clear(screen, clear_surface)
         god_sprite.clear(screen, clear_surface)
 
-        if check_game_end(playerbird1, enemy_list):
+        if check_game_end(player1, enemy_list):
             running = False
 
 
