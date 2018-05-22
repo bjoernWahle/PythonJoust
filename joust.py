@@ -14,7 +14,7 @@ MAX_SPEED = 10
 def load_sliced_sprites(w, h, filename):
     # returns a list of image frames sliced from file
     images = []
-    master_image = pygame.image.load(filename)
+    master_image = pygame.image.load('sprites/%s' % filename)
     master_image = master_image.convert_alpha()
     master_width, master_height = master_image.get_size()
     for i in range(int(master_width / w)):
@@ -23,9 +23,9 @@ def load_sliced_sprites(w, h, filename):
 
 
 def load_platforms():
-    platform_images = [pygame.image.load("plat1.png"), pygame.image.load("plat2.png"), pygame.image.load("plat3.png"),
-                       pygame.image.load("plat4.png"), pygame.image.load("plat5.png"), pygame.image.load("plat6.png"),
-                       pygame.image.load("plat7.png"), pygame.image.load("plat8.png")]
+    platform_images = [pygame.image.load("sprites/plat1.png"), pygame.image.load("sprites/plat2.png"), pygame.image.load("sprites/plat3.png"),
+                       pygame.image.load("sprites/plat4.png"), pygame.image.load("sprites/plat5.png"), pygame.image.load("sprites/plat6.png"),
+                       pygame.image.load("sprites/plat7.png"), pygame.image.load("sprites/plat8.png")]
     return platform_images
 
 
@@ -282,9 +282,9 @@ class Player(pygame.sprite.Sprite):
         self.flap = False
         self.walking = True
         self.player_channel = pygame.mixer.Channel(0)
-        self.flapsound = pygame.mixer.Sound("joustflaedit.wav")
-        self.skidsound = pygame.mixer.Sound("joustski.wav")
-        self.bumpsound = pygame.mixer.Sound("joustthu.wav")
+        self.flapsound = pygame.mixer.Sound("audio/joustflaedit.wav")
+        self.skidsound = pygame.mixer.Sound("audio/joustski.wav")
+        self.bumpsound = pygame.mixer.Sound("audio/joustthu.wav")
         self.lives = 4
         self.spawning = True
         self.alive = 2
@@ -531,7 +531,7 @@ class Player(pygame.sprite.Sprite):
 class godmode(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
-        self.pic = pygame.image.load("god.png")
+        self.pic = pygame.image.load("sprites/god.png")
         self.image = self.pic
         self.on = False
         self.rect = self.image.get_rect()
@@ -633,7 +633,7 @@ def main():
     unmountedimages = load_sliced_sprites(60, 60, "unmounted.png")
     player_unmounted_images = load_sliced_sprites(60, 60, "playerUnmounted.png")
     eggimages = load_sliced_sprites(40, 33, "egg.png")
-    lifeimage = pygame.image.load("life.png")
+    lifeimage = pygame.image.load("sprites/life.png")
     lifeimage = lifeimage.convert_alpha()
     digits = load_sliced_sprites(21, 21, "digits.png")
     player1 = Player(birdimages, spawnimages, player_unmounted_images, 300, 450, 1)
