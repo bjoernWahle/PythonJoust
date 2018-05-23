@@ -13,7 +13,6 @@ from sprites import load_sliced_sprites, load_sprite
 import numpy as np
 
 
-# TODO add lava (see joust.py)
 # TODO add player-player collisions
 # TODO complete getGameState method
 # TODO get scores from self.rewards instead of config (needs to be figured out since no documentation about that)
@@ -48,6 +47,7 @@ class Joust(base.PyGameWrapper):
         base.PyGameWrapper.__init__(self, width, height, actions=actions)
         self.rng = np.random.RandomState(24)
         self.screen = pygame.display.set_mode(self.getScreenDims(), 0, 32)
+        self.clear_surface = self.screen.copy()
 
         self.player1 = Player(1, self)
         self.player2 = Player(2, self)
@@ -199,6 +199,7 @@ class Joust(base.PyGameWrapper):
     def _draw_screen(self):
         self.screen.fill((0,0,0))
         rects = []
+
         # draw players
         rects.extend(self._draw_players())
 
@@ -207,9 +208,12 @@ class Joust(base.PyGameWrapper):
 
         # draw eggs
         rects.extend(self._draw_eggs())
-
+        # draw lava
+        rects.extend(self._draw_lava())
         # draw platforms
         rects.extend(self._draw_platforms())
+
+
 
         # draw scores and lives
         self._draw_scores()
@@ -246,3 +250,8 @@ class Joust(base.PyGameWrapper):
     def _draw_lives(self):
         self._draw_player_lives(self.player1)
         self._draw_player_lives(self.player2)
+
+    def _draw_lava(self):
+        lava_rect = [0, 600, 900, 50]
+        lava_rect2 = [0, 620, 900, 30]
+        return [pygame.draw.rect(self.screen, (255, 0, 0), lava_rect), pygame.draw.rect(self.screen, (255, 0, 0), lava_rect2)]

@@ -260,7 +260,8 @@ class Player(pygame.sprite.Sprite):
                 self.facing_right = True
         else:
             # player respawn
-            self.respawn()
+            if self.lives > 0:
+                self.respawn()
         self.reset_actions()
 
     def bounce(self, collided_thing):
