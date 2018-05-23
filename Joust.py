@@ -27,9 +27,6 @@ class Joust(base.PyGameWrapper):
 
         if config is None:
             config = {
-                "enemy_kill_score": 10,
-                "egg_collect_score": 10,
-                "player_kill_score": 0,
                 "enemy_count": 6,
                 "max_speed": 10
             }
@@ -63,6 +60,7 @@ class Joust(base.PyGameWrapper):
         # init sprites
         self._sprites = {
             'digits': load_sliced_sprites(21, 21, "digits.png"),
+            'red_digits' : load_sliced_sprites(21, 21, 'red_digits.png'),
             'life': load_sprite("life.png", convert_alpha=True),
         }
 
@@ -90,10 +88,8 @@ class Joust(base.PyGameWrapper):
         state = {
             "player1_x": self.player1.x,
             "player1_xspeed": self.player1.x_speed,
-            "player2_x": self.player1.x,
-            "player2_xspeed": self.player1.x_speed,
-
-            # TODO add enemies and eggs
+            "player2_x": self.player2.x,
+            "player2_xspeed": self.player2.x_speed,
         }
 
         return state
@@ -105,6 +101,8 @@ class Joust(base.PyGameWrapper):
             for enemy in self.enemies:
                 if enemy.alive:
                     return False
+            self.player1.score += self.rewards['win']
+            self.player2.score += self.rewards['win']
             return True
         return False
 
@@ -169,12 +167,19 @@ class Joust(base.PyGameWrapper):
             x = 353
         else:
             x = 590
-        self.screen.blit(self._sprites['digits'][player.score % 10], [x, 570])
-        self.screen.blit(self._sprites['digits'][(player.score % 100) // 10], [x - 18, 570])
-        self.screen.blit(self._sprites['digits'][(player.score % 1000) // 100], [x - 2 * 18, 570])
-        self.screen.blit(self._sprites['digits'][(player.score % 10000) // 1000], [x - 3 * 18, 570])
-        self.screen.blit(self._sprites['digits'][(player.score % 100000) // 10000], [x - 4 * 18, 570])
-        self.screen.blit(self._sprites['digits'][(player.score % 1000000) // 100000], [x - 5 * 18, 570])
+
+        score = int(player.score)
+        digit_sprites = self._sprites['digits']
+        if score < 0.0:
+            digit_sprites = self._sprites['red_digits']
+            score = score * -1
+
+        self.screen.blit(digit_sprites[score % 10], [x, 570])
+        self.screen.blit(digit_sprites[(score % 100) // 10], [x - 18, 570])
+        self.screen.blit(digit_sprites[(score % 1000) // 100], [x - 2 * 18, 570])
+        self.screen.blit(digit_sprites[(score % 10000) // 1000], [x - 3 * 18, 570])
+        self.screen.blit(digit_sprites[(score % 100000) // 10000], [x - 4 * 18, 570])
+        self.screen.blit(digit_sprites[(score % 1000000) // 100000], [x - 5 * 18, 570])
 
     def _handle_player_events(self):
         self.dx = 0.0

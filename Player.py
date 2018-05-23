@@ -75,7 +75,7 @@ class Player(pygame.sprite.Sprite):
             if bird.y > self.y and bird.alive:
                 self.bounce(bird)
                 bird.killed()
-                self.score += self.game.config['enemy_kill_score']
+                self.score += self.game.rewards['positive']
                 bird.bounce(self)
             elif bird.y < self.y - 5 and bird.alive:
                 self.bounce(bird)
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):
         if len(collided_eggs) > 0:
             for collided_egg in collided_eggs:
                 collided_egg.kill()
-                self.score += self.game.config['egg_collect_score']
+                self.score += self.game.rewards['positive']
 
     # TODO modularize
     def update(self, dt):
@@ -113,6 +113,7 @@ class Player(pygame.sprite.Sprite):
         platforms = self.game.get_platforms()
         enemies = self.game.get_enemies()
         egg_list = self.game.get_eggs()
+        self.score+= self.game.rewards['tick']
         if self.alive == 2:
             if self.spawning:
                 self.frame_num += 1
@@ -134,7 +135,7 @@ class Player(pygame.sprite.Sprite):
                         self.player_channel.stop()
                         self.flapsound.play(0)
                         if self.y_speed > -250:
-                            self.y_speed -= 3
+                            self.y_speed -= 2
                         self.flap = True
                 else:
                     self.flap = False
@@ -149,6 +150,7 @@ class Player(pygame.sprite.Sprite):
                 if self.y < 0:
                     self.y = 0
                     self.y_speed = 2
+                # when falling into lava
                 if self.y > 570:
                     self.die()
                 if self.x < -48:
@@ -290,6 +292,7 @@ class Player(pygame.sprite.Sprite):
         return collided
 
     def die(self):
+        self.score += self.game.rewards['loss']
         self.lives -= 1
         self.alive = 1
 
