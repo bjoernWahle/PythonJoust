@@ -7,7 +7,7 @@ class NaiveAgent():
     """
 
     def __init__(self, actions):
-        self.actions = actions
+        self.actions = actions.values()
 
     def pickAction(self, reward, obs):
         return self.actions[np.random.randint(0, len(self.actions))]

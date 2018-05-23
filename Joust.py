@@ -35,14 +35,21 @@ class Joust(base.PyGameWrapper):
             }
         self.config = config
 
-        actions = {
+        self.p1_actions = {
             "p1_up": K_w,
             "p1_left": K_a,
-            "p1_right": K_d,
+            "p1_right": K_d
+        }
+
+        self.p2_actions = {
             "p2_up": K_i,
             "p2_left": K_j,
             "p2_right": K_l
         }
+
+        actions = {}
+        actions.update(self.p1_actions)
+        actions.update(self.p2_actions)
 
         base.PyGameWrapper.__init__(self, width, height, actions=actions)
         self.rng = np.random.RandomState(24)
