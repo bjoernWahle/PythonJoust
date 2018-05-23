@@ -14,16 +14,6 @@ p.init()
 agent1 = NaiveAgent(game.p1_actions, p.getGameStateDims())
 agent2 = NaiveAgent(game.p2_actions, p.getGameStateDims())
 
-game.adjustRewards(
-    {
-        "positive": 10,
-        "tick": -0.01,
-        "negative": 10,
-        "win": 100,
-        "loss": -100
-    }
-)
-
 nb_frames = 1000
 reward = 0.0
 
