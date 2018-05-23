@@ -48,6 +48,17 @@ class Joust(base.PyGameWrapper):
         actions.update(self.p2_actions)
 
         base.PyGameWrapper.__init__(self, width, height, actions=actions)
+
+        self.adjustRewards(
+            {
+                "positive": 10,
+                "tick": -0.01,
+                "negative": 5,
+                "win": 100,
+                "loss": -100,
+            }
+        )
+
         self.rng = np.random.RandomState(24)
         self.screen = pygame.display.set_mode(self.getScreenDims(), 0, 32)
         self.clear_surface = self.screen.copy()
