@@ -1,5 +1,7 @@
 import pygame
 
+from sprites import load_sprite
+
 
 class Platform(pygame.sprite.Sprite):
     def __init__(self, image, x, y):
@@ -14,11 +16,11 @@ class Platform(pygame.sprite.Sprite):
 
     @staticmethod
     def load_platforms():
-        platform_images = [pygame.image.load("plat1.png"), pygame.image.load("plat2.png"),
-                           pygame.image.load("plat3.png"),
-                           pygame.image.load("plat4.png"), pygame.image.load("plat5.png"),
-                           pygame.image.load("plat6.png"),
-                           pygame.image.load("plat7.png"), pygame.image.load("plat8.png")]
+        platform_images = [load_sprite("plat1.png"), load_sprite("plat2.png"),
+                           load_sprite("plat3.png"),
+                           load_sprite("plat4.png"), load_sprite("plat5.png"),
+                           load_sprite("plat6.png"),
+                           load_sprite("plat7.png"), load_sprite("plat8.png")]
         return platform_images
 
     @staticmethod

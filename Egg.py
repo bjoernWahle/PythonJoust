@@ -6,7 +6,7 @@ from sprites import load_sliced_sprites
 class Egg(pygame.sprite.Sprite):
     def __init__(self, x, y, x_speed, y_speed):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
-        self.images = eggimages = load_sliced_sprites(40, 33, "egg.png")
+        self.images  = load_sliced_sprites(40, 33, "egg.png")
         self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.x = x
@@ -28,26 +28,23 @@ class Egg(pygame.sprite.Sprite):
         if self.y > 570:  # hit lava
             self.kill()
 
-    def update(self, current_time, platforms):
-        # Update every 30 milliseconds
-        if self.next_update_time < current_time:
-            self.next_update_time = current_time + 30
-            self.move()
-            self.rect.topleft = (self.x, self.y)
-            collided_platforms = pygame.sprite.spritecollide(self, platforms, False,
-                                                             collided=pygame.sprite.collide_mask)
-            if (((40 < self.y < 45) or (250 < self.y < 255)) and (
-                    self.x < 0 or self.x > 860)):  # catch when it is rolling between screens
-                self.y_speed = 0
-            else:
-                collided = False
-                for collided_platform in collided_platforms:
-                    collided = self.bounce(collided_platform)
-            # wrap round screens
-            if self.x < -48:
-                self.x = 900
-            if self.x > 900:
-                self.x = -48
+    def update(self, dt, platforms):
+        self.move()
+        self.rect.topleft = (self.x, self.y)
+        collided_platforms = pygame.sprite.spritecollide(self, platforms, False,
+                                                         collided=pygame.sprite.collide_mask)
+        if (((40 < self.y < 45) or (250 < self.y < 255)) and (
+                self.x < 0 or self.x > 860)):  # catch when it is rolling between screens
+            self.y_speed = 0
+        else:
+            collided = False
+            for collided_platform in collided_platforms:
+                collided = self.bounce(collided_platform)
+        # wrap round screens
+        if self.x < -48:
+            self.x = 900
+        if self.x > 900:
+            self.x = -48
 
     def bounce(self, collided_thing):
         collided = False
