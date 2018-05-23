@@ -67,8 +67,10 @@ class Joust(base.PyGameWrapper):
         # init players
         self.player1.init()
         self.player2.init()
-        self.players = pygame.sprite.RenderUpdates()
-        self.players.add([self.player1, self.player2])
+        self.player1_r = pygame.sprite.RenderUpdates()
+        self.player2_r = pygame.sprite.RenderUpdates()
+        self.player1_r.add([self.player1])
+        self.player2_r.add([self.player2])
 
         # init platforms
         self.platforms = pygame.sprite.RenderUpdates()
@@ -118,7 +120,8 @@ class Joust(base.PyGameWrapper):
         self._handle_player_events()
 
         # update players
-        self.players.update(dt)
+        self.player1_r.update(dt)
+        self.player2_r.update(dt)
 
         # update platforms
         self._update_platforms()
@@ -140,6 +143,13 @@ class Joust(base.PyGameWrapper):
 
     def get_eggs(self):
         return self.eggs
+
+    def get_other_players(self,id):
+        if id == 1:
+            return self.player2_r
+        else:
+            return self.player1_r
+
 
     def add_egg(self, x, y, xspeed, yspeed):
         self.eggs.add(Egg(x, y, xspeed, yspeed))
@@ -212,7 +222,8 @@ class Joust(base.PyGameWrapper):
         rects = []
 
         # draw players
-        rects.extend(self._draw_players())
+        rects.extend(self._draw_players(1))
+        rects.extend(self._draw_players(2))
 
         # draw enemies
         rects.extend(self._draw_enemies())
@@ -242,8 +253,12 @@ class Joust(base.PyGameWrapper):
         return self.eggs.update(dt, self.platforms)
 
 
-    def _draw_players(self):
-        return self.players.draw(self.screen)
+    def _draw_players(self,id):
+        if id == 1:
+            return self.player1_r.draw(self.screen)
+        else:
+            return self.player2_r.draw(self.screen)
+
 
     def _draw_enemies(self):
         return self.enemies.draw(self.screen)
