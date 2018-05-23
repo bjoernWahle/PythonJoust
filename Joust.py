@@ -16,7 +16,6 @@ import numpy as np
 # TODO add lava (see joust.py)
 # TODO add player-player collisions
 # TODO complete getGameState method
-# TODO don't update whole screen everytime (use RenderUpdate like in joust.py)
 # TODO get scores from self.rewards instead of config (needs to be figured out since no documentation about that)
 # TODO use with ple-gym (https://github.com/lusob/gym-ple)
 # TODO figure out how headless / stateless works
@@ -64,17 +63,20 @@ class Joust(base.PyGameWrapper):
         # init players
         self.player1.init()
         self.player2.init()
+        self.players = pygame.sprite.RenderUpdates()
+        self.players.add([self.player1, self.player2])
 
         # init platforms
-        self.platforms = Platform.get_platforms()
+        self.platforms = pygame.sprite.RenderUpdates()
+        self.platforms.add(Platform.get_platforms())
 
         # init enemies
-        self.enemies = []
+        self.enemies = pygame.sprite.RenderUpdates()
         self.enemies_to_spawn = self.config['enemy_count']
         self.next_enemy_spawn_time = None
 
         # init eggs
-        self.eggs = pygame.sprite.Group()
+        self.eggs = pygame.sprite.RenderUpdates()
 
     def getGameState(self):
 
@@ -107,14 +109,12 @@ class Joust(base.PyGameWrapper):
         if self.next_enemy_spawn_time is None:
             self.next_enemy_spawn_time = current_time + 2000
         if current_time > self.next_enemy_spawn_time and self.enemies_to_spawn > 0:
-            print "Spawning enemies"
             self._spawn_enemies()
             self.next_enemy_spawn_time = current_time + 5000
         self._handle_player_events()
 
         # update players
-        self.player1.update(dt)
-        self.player2.update(dt)
+        self.players.update(dt)
 
         # update platforms
         self._update_platforms()
@@ -146,7 +146,7 @@ class Joust(base.PyGameWrapper):
     def _spawn_enemies(self):
         new_enemies = Enemy.generate_enemies(self, 2)
         self.enemies_to_spawn -= 2
-        self.enemies.extend(new_enemies)
+        self.enemies.add(new_enemies)
 
     def _draw_player_lives(self, player):
         if player.id == 1:
@@ -198,51 +198,46 @@ class Joust(base.PyGameWrapper):
 
     def _draw_screen(self):
         self.screen.fill((0,0,0))
+        rects = []
         # draw players
-        self._draw_players()
+        rects.extend(self._draw_players())
 
         # draw enemies
-        self._draw_enemies()
+        rects.extend(self._draw_enemies())
 
         # draw eggs
-        self._draw_eggs()
+        rects.extend(self._draw_eggs())
 
         # draw platforms
-        self._draw_platforms()
+        rects.extend(self._draw_platforms())
 
         # draw scores and lives
         self._draw_scores()
         self._draw_lives()
 
-        pygame.display.flip()
+        pygame.display.update(rects)
 
     def _update_platforms(self):
-        for platform in self.platforms:
-            platform.update()
+        return self.platforms.update()
 
     def _update_enemies(self, dt):
-        for enemy in self.enemies:
-            enemy.update(dt)
+        return self.enemies.update(dt)
 
     def _update_eggs(self, dt):
-        for egg in self.eggs.sprites():
-            egg.update(dt, self.platforms)
+        return self.eggs.update(dt, self.platforms)
+
 
     def _draw_players(self):
-        self._draw_player(self.player1)
-        self._draw_player(self.player2)
+        return self.players.draw(self.screen)
 
     def _draw_enemies(self):
-        for enemy in self.enemies:
-            self._draw_enemy(enemy)
+        return self.enemies.draw(self.screen)
 
     def _draw_eggs(self):
-        for egg in self.eggs:
-            self._draw_egg(egg)
+        return self.eggs.draw(self.screen)
 
     def _draw_platforms(self):
-        for platform in self.platforms:
-            self._draw_platform(platform)
+        return self.platforms.draw(self.screen)
 
     def _draw_scores(self):
         self._draw_player_score(self.player1)
@@ -251,15 +246,3 @@ class Joust(base.PyGameWrapper):
     def _draw_lives(self):
         self._draw_player_lives(self.player1)
         self._draw_player_lives(self.player2)
-
-    def _draw_player(self, player):
-        self.screen.blit(player.image, player.rect.topleft)
-
-    def _draw_enemy(self, enemy):
-        self.screen.blit(enemy.image, enemy.rect.topleft)
-
-    def _draw_egg(self, egg):
-        self.screen.blit(egg.image, egg.rect.topleft)
-
-    def _draw_platform(self, platform):
-        self.screen.blit(platform.image, platform.rect.topleft)
