@@ -67,7 +67,7 @@ class Player(pygame.sprite.Sprite):
         self.actions['right'] = True
 
     # TODO move to game
-    def check_collisions(self, enemies, platforms, egg_list):
+    def check_collisions(self, other_player, enemies, platforms, egg_list):
         # check for enemy collision
         collided_birds = pygame.sprite.spritecollide(self, enemies, False, collided=pygame.sprite.collide_mask)
         for bird in collided_birds:
@@ -106,6 +106,11 @@ class Player(pygame.sprite.Sprite):
             for collided_egg in collided_eggs:
                 collided_egg.kill()
                 self.score += self.game.rewards['positive']
+        # check for player collision
+        collided_player = pygame.sprite.spritecollide(self, other_player, False, collided=pygame.sprite.collide_mask)
+        if collided_player:
+            self.bounce(collided_player[0])
+            collided_player[0].bounce(self)
 
     # TODO modularize
     def update(self, dt):
@@ -114,6 +119,8 @@ class Player(pygame.sprite.Sprite):
         enemies = self.game.get_enemies()
         egg_list = self.game.get_eggs()
         self.score+= self.game.rewards['tick']
+        other_players = self.game.get_other_players(self.id)
+
         if self.alive == 2:
             if self.spawning:
                 self.frame_num += 1
@@ -158,7 +165,7 @@ class Player(pygame.sprite.Sprite):
                 if self.x > 900:
                     self.x = -48
                 self.rect.topleft = (self.x, self.y)
-                self.check_collisions(enemies, platforms, egg_list)
+                self.check_collisions(other_players, enemies, platforms, egg_list)
                 self.rect.topleft = (self.x, self.y)
                 if self.walking:
                     # if walking
