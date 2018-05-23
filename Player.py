@@ -67,7 +67,7 @@ class Player(pygame.sprite.Sprite):
         self.actions['right'] = True
 
     # TODO move to game
-    def check_collisions(self, other_player, enemies, platforms, egg_list):
+    def check_collisions(self, other_players, enemies, platforms, egg_list):
         # check for enemy collision
         collided_birds = pygame.sprite.spritecollide(self, enemies, False, collided=pygame.sprite.collide_mask)
         for bird in collided_birds:
@@ -80,8 +80,7 @@ class Player(pygame.sprite.Sprite):
             elif bird.y < self.y - 5 and bird.alive:
                 self.bounce(bird)
                 bird.bounce(self)
-                self.die()
-
+                self.die(self.game.rewards['loss'])
                 break
             elif bird.alive:
                 self.bounce(bird)
@@ -107,10 +106,25 @@ class Player(pygame.sprite.Sprite):
                 collided_egg.kill()
                 self.score += self.game.rewards['positive']
         # check for player collision
-        collided_player = pygame.sprite.spritecollide(self, other_player, False, collided=pygame.sprite.collide_mask)
+        collided_player = pygame.sprite.spritecollide(self, other_players, False, collided=pygame.sprite.collide_mask)
         if collided_player:
-            self.bounce(collided_player[0])
-            collided_player[0].bounce(self)
+            for o_player in collided_player:
+                # check each bird to see if above or below
+                if o_player.y > self.y and o_player.alive:
+                    self.bounce(o_player)
+                    o_player.killed()
+                    # TODO CHANGE FOR DEFLECTION ?
+                    self.score += self.game.rewards['positive']
+                    o_player.bounce(self)
+                elif o_player.y < self.y - 5 and o_player.alive:
+                    self.bounce(o_player)
+                    o_player.bounce(self)
+                    self.die(self.game.rewards['loss'])
+                    break
+                elif o_player.alive:
+                    self.bounce(collided_player[0])
+                    collided_player[0].bounce(self)
+
 
     # TODO modularize
     def update(self, dt):
@@ -159,7 +173,7 @@ class Player(pygame.sprite.Sprite):
                     self.y_speed = 2
                 # when falling into lava
                 if self.y > 570:
-                    self.die()
+                    self.die(self.game.rewards['loss'])
                 if self.x < -48:
                     self.x = 900
                 if self.x > 900:
@@ -298,8 +312,8 @@ class Player(pygame.sprite.Sprite):
             self.y_speed = 0
         return collided
 
-    def die(self):
-        self.score += self.game.rewards['loss']
+    def die(self, reward):
+        self.score += reward
         self.lives -= 1
         self.alive = 1
 
