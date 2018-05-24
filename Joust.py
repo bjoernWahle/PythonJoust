@@ -3,7 +3,7 @@ import sys
 import pygame
 
 from ple.games import base
-from pygame.constants import K_a, K_d, K_w, K_j, K_l, K_i
+from pygame.constants import K_a, K_d, K_w, K_j, K_l, K_i, K_F5, K_F15
 
 from Egg import Egg
 from Enemy import Enemy
@@ -34,13 +34,15 @@ class Joust(base.PyGameWrapper):
         self.p1_actions = {
             "p1_up": K_w,
             "p1_left": K_a,
-            "p1_right": K_d
+            "p1_right": K_d,
+            "p1_noop": K_F5
         }
 
         self.p2_actions = {
             "p2_up": K_i,
             "p2_left": K_j,
-            "p2_right": K_l
+            "p2_right": K_l,
+            "p2_noop": K_F15
         }
 
         actions = {}
