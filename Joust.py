@@ -19,15 +19,18 @@ import numpy as np
 # TODO figure out how headless works
 class Joust(base.PyGameWrapper):
 
-    def __init__(self, width=900, height=650, config=None):
+    def __init__(self, width=900, height=650, config=None, display_screen=True):
         pygame.display.init()
         pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
 
+        self.display_screen = display_screen
+
         if config is None:
             config = {
-                "enemy_count": 6,
-                "max_speed": 10
+                "enemy_count": 0,
+                "max_speed": 10,
+                "initial_lives" : 10,
             }
         self.config = config
 
@@ -54,8 +57,8 @@ class Joust(base.PyGameWrapper):
         self.screen = pygame.display.set_mode(self.getScreenDims(), 0, 32)
         self.clear_surface = self.screen.copy()
 
-        self.player1 = Player(1, self)
-        self.player2 = Player(2, self)
+        self.player1 = Player(1, self, initial_lives=self.config['initial_lives'])
+        self.player2 = Player(2, self, initial_lives=self.config['initial_lives'])
 
 
         # init sprites
@@ -66,6 +69,9 @@ class Joust(base.PyGameWrapper):
         }
 
     def init(self):
+        if self.display_screen:
+            self.screen.fill((0, 0, 0))
+            pygame.display.update()
         # init players
         self.player1.init()
         self.player2.init()
@@ -84,15 +90,24 @@ class Joust(base.PyGameWrapper):
         # init eggs
         self.eggs = pygame.sprite.RenderUpdates()
 
+        # draw updated screen
+        if self.display_screen:
+            self._draw_screen()
+
     def getGameState(self):
 
         state = {
             "player1_x": self.player1.x,
             "player1_xspeed": self.player1.x_speed,
+            "player1_y": self.player1.y,
+            "player1_yspeed": self.player1.y_speed,
+            #"player1_flap": self.player1.flap,
             "player2_x": self.player2.x,
             "player2_xspeed": self.player2.x_speed,
+            "player2_y": self.player2.y,
+            "player2_yspeed": self.player2.y_speed,
+            #"player2_flap": self.player2.flap,
         }
-
         return state
 
     def game_over(self):
@@ -132,7 +147,8 @@ class Joust(base.PyGameWrapper):
         self._update_eggs(dt)
 
         # draw updated screen
-        self._draw_screen()
+        if self.display_screen:
+            self._draw_screen()
 
     def get_platforms(self):
         return self.platforms
@@ -210,7 +226,6 @@ class Joust(base.PyGameWrapper):
             self.player2.right()
 
     def _draw_screen(self):
-        self.screen.fill((0,0,0))
         rects = []
 
         # draw players
@@ -233,6 +248,8 @@ class Joust(base.PyGameWrapper):
         self._draw_lives()
 
         pygame.display.update(rects)
+        for ru in [self.players, self.platforms, self.enemies, self.eggs]:
+            ru.clear(self.screen, self.clear_surface)
 
     def _update_platforms(self):
         return self.platforms.update()

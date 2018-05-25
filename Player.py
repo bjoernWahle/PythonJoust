@@ -7,13 +7,14 @@ from sprites import load_sliced_sprites
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, id, game, spawn_x=None, spawn_y=None):
+    def __init__(self, id, game, spawn_x=None, spawn_y=None, initial_lives=3):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
         self.id = id
         self.game = game
+        self.initial_lives = initial_lives
         if spawn_x is None or spawn_y is None:
             if self.id == 1:
-                spawn_x = 300
+                spawn_x = 600
                 spawn_y = 450
             else:
                 spawn_x = 600
@@ -37,8 +38,7 @@ class Player(pygame.sprite.Sprite):
         self.frame_num = 1
         self.image = self.images[self.frame_num]
         self.rect = self.image.get_rect()
-        self.lives = 1
-        self.next_update_time = 0
+        self.lives = self.initial_lives
         self.next_anim_time = 0
         self.targetx_speed = 10
         self.x_speed = 0
@@ -113,17 +113,17 @@ class Player(pygame.sprite.Sprite):
         platforms = self.game.get_platforms()
         enemies = self.game.get_enemies()
         egg_list = self.game.get_eggs()
-        self.score+= self.game.rewards['tick']
+
         if self.alive == 2:
             if self.spawning:
                 self.frame_num += 1
                 self.image = self.spawnimages[self.frame_num]
-                self.next_update_time += 100
                 self.rect.topleft = (self.x, self.y)
                 if self.frame_num == 5:
                     self.frame_num = 4
                     self.spawning = False
             else:
+                self.score += self.game.rewards['tick']
                 if self.actions['left']:
                     if self.x_speed > -self.game.config['max_speed']:
                         self.x_speed -= 0.5
@@ -131,12 +131,12 @@ class Player(pygame.sprite.Sprite):
                     if self.x_speed < self.game.config['max_speed']:
                         self.x_speed += 0.5
                 if self.actions['up']:
-                    if not self.flap:
-                        self.player_channel.stop()
-                        self.flapsound.play(0)
-                        if self.y_speed > -250:
-                            self.y_speed -= 2
-                        self.flap = True
+                    #if not self.flap:
+                    self.player_channel.stop()
+                    self.flapsound.play(0)
+                    if self.y_speed > -250:
+                        self.y_speed -= 2
+                    self.flap = True
                 else:
                     self.flap = False
                 self.x = self.x + self.x_speed
@@ -147,6 +147,10 @@ class Player(pygame.sprite.Sprite):
                     self.y_speed = self.game.config['max_speed']
                 if self.y_speed < -self.game.config['max_speed']:
                     self.y_speed = -self.game.config['max_speed']
+                if self.x_speed > self.game.config['max_speed']:
+                    self.x_speed = self.game.config['max_speed']
+                if self.x_speed < -self.game.config['max_speed']:
+                    self.x_speed = -self.game.config['max_speed']
                 if self.y < 0:
                     self.y = 0
                     self.y_speed = 2
@@ -222,11 +226,9 @@ class Player(pygame.sprite.Sprite):
             if self.x < -48:  # off the left. remove entirely
                 self.image = self.images[7]
                 self.alive = 0
-                self.next_update_time = current_time + 2000
             if self.x > 900:  # off the right. remove entirely
                 self.image = self.images[7]
                 self.alive = 0
-                self.next_update_time = current_time + 2000
             self.rect.topleft = (self.x, self.y)
             # check for platform collision
             collided_platforms = pygame.sprite.spritecollide(self, platforms, False,

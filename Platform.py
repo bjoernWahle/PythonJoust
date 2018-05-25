@@ -34,4 +34,5 @@ class Platform(pygame.sprite.Sprite):
         plat6 = Platform(platform_images[5], 0, 310)
         plat7 = Platform(platform_images[6], 759, 310)
         plat8 = Platform(platform_images[7], 600, 290)
-        return [plat1, plat2, plat3, plat4, plat5, plat6, plat7, plat8]
+        #return [plat1, plat2, plat3, plat4, plat5, plat6, plat7, plat8]
+        return [plat2]
