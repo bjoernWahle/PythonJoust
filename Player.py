@@ -54,7 +54,7 @@ class Player(pygame.sprite.Sprite):
         self.actions = {
             'up': False,
             'left': False,
-            'right' : False
+            'right': False
         }
 
     def up(self):
@@ -112,7 +112,7 @@ class Player(pygame.sprite.Sprite):
                 # check each bird to see if above or below
                 if o_player.y > self.y and o_player.alive:
                     self.bounce(o_player)
-                    o_player.killed()
+                    o_player.die(self.game.rewards['loss'])
                     # TODO CHANGE FOR DEFLECTION ?
                     self.score += self.game.rewards['positive']
                     o_player.bounce(self)
@@ -124,7 +124,6 @@ class Player(pygame.sprite.Sprite):
                 elif o_player.alive:
                     self.bounce(collided_player[0])
                     collided_player[0].bounce(self)
-
 
     # TODO modularize
     def update(self, dt):
@@ -150,7 +149,7 @@ class Player(pygame.sprite.Sprite):
                     if self.x_speed < self.game.config['max_speed']:
                         self.x_speed += 0.5
                 if self.actions['up']:
-                    #if not self.flap:
+                    # if not self.flap:
                     self.player_channel.stop()
                     self.flapsound.play(0)
                     if self.y_speed > -250:
