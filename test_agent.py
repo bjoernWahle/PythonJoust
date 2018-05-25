@@ -11,31 +11,16 @@ class NaiveAgent():
             This is our naive agent. It picks actions at random!
     """
 
-    def __init__(self, player, actions, state_space, train_start=0, exploration_prob_init=0.1, exporation_prop_decay=0.9, y=0.95, log_level=logging.WARNING):
-
+    def __init__(self, player, actions, state_space, train_start=0, exploration_prob_init=1, exploration_prob_train=0.2, exporation_prop_decay=0.9, y=0.95, log_level=logging.WARNING):
+        self.exploration_prob_train = exploration_prob_train
         self.player = player
         self.id = player.id
         self.state_space = state_space
         self.action_keys = actions.keys()
         self.actions = actions.values()
-        self.history = []
+        self.rewards = []
         self.last_state = None
         self.last_action = None
-
-        x_steps = 10
-        y_steps = 10
-        x_min = 0
-        x_max = 900
-        y_min = 0
-        y_max = 650
-        x_speed_steps = 10
-        y_speed_steps = 10
-        x_speed_min = -10
-        x_speed_max = 10
-        y_speed_min = -10
-        y_speed_max = -10
-
-        #self._d = Discretizer(np.array([]))
 
         self.train_start = train_start
         self.y = y
@@ -44,6 +29,8 @@ class NaiveAgent():
 
         self.logger = logging.Logger("P%i" % self.id)
         self.logger.setLevel(log_level)
+
+        self.q_list = []
 
         # create console handler and set level to debug
         ch = logging.StreamHandler()
@@ -67,11 +54,13 @@ class NaiveAgent():
             self.logger.info("Exploration prob decreased to %f" % self.exploration_prob)
 
         if self.player.alive == 2 and not self.player.spawning:
+            qAll, action_idx = self._predict_action(state)
+            self.logger.debug("Predicted action: %s" % self.action_keys[action_idx])
             if np.random.uniform() < self.exploration_prob:
                 action_idx = np.random.randint(0, len(self.actions))
-            else:
-                action_idx = self._predict_action(state)
-                self.logger.debug("Predicted action: %s" % self.action_keys[action_idx])
+
+            self.q_list.append([state, qAll, action_idx])
+
             self.last_state = state
             self.last_action = action_idx
             self.alive_last_round = True
@@ -85,18 +74,21 @@ class NaiveAgent():
 
     def _buildNN(self):
         nn = keras.Sequential()
-        nn.add(Dense(units=len(self.actions), input_dim=self.state_space[1]))
+        nn.add(Dense(units=len(self.actions),activation="softmax", input_dim=self.state_space[1]))
         nn.compile(loss='mse',
                    optimizer='adam')
 
         return nn
 
     def _predict_action(self, state):
-        return np.argmax(self.nn.predict(state))
+        q_all = self.nn.predict(state)[0]
+        return q_all, np.argmax(q_all)
+
+    def store_reward(self, rewards):
+        self.rewards.append(rewards[self.id - 1])
 
     def train(self, rewards, new_state):
         if self.last_state is not None and self.alive_last_round:
-            self.history.append([self.last_state, self.last_action, rewards])
             # get own reward
             r = rewards[self.id - 1]
 
@@ -104,3 +96,14 @@ class NaiveAgent():
             target_vec = self.nn.predict(self.last_state)[0]
             target_vec[self.last_action] = target
             self.nn.fit(self.last_state, target_vec.reshape(-1, len(self.actions)), epochs=1, verbose=False)
+
+    def replay_memories(self, final_reward1):
+        X = np.zeros([len(self.q_list), self.state_space[1]])
+        Y = np.zeros([len(self.q_list), len(self.actions)])
+        for index, (state, qAll, a_i) in enumerate(self.q_list):
+            qAll[a_i] = final_reward1
+            Y[index, :] = qAll
+            X[index] = state
+
+        self.nn.fit(X, Y, epochs=1, verbose=False)
+        self.q_list = []

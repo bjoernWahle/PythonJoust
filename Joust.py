@@ -30,7 +30,7 @@ class Joust(base.PyGameWrapper):
             config = {
                 "enemy_count": 0,
                 "max_speed": 10,
-                "initial_lives" : 10,
+                "initial_lives" : 5,
             }
         self.config = config
 
@@ -53,16 +53,6 @@ class Joust(base.PyGameWrapper):
         actions.update(self.p2_actions)
 
         base.PyGameWrapper.__init__(self, width, height, actions=actions)
-
-        self.adjustRewards(
-            {
-                "positive": 10,
-                "tick": -0.01,
-                "negative": 5,
-                "win": 100,
-                "loss": -100,
-            }
-        )
 
         self.rng = np.random.RandomState(24)
         self.screen = pygame.display.set_mode(self.getScreenDims(), 0, 32)
@@ -111,14 +101,14 @@ class Joust(base.PyGameWrapper):
 
         state = {
             "player1_x": self.player1.x,
-            "player1_xspeed": self.player1.x_speed,
+            "player1_x_speed": self.player1.x_speed,
             "player1_y": self.player1.y,
-            "player1_yspeed": self.player1.y_speed,
+            "player1_y_speed": self.player1.y_speed,
             #"player1_flap": self.player1.flap,
             "player2_x": self.player2.x,
-            "player2_xspeed": self.player2.x_speed,
+            "player2_x_speed": self.player2.x_speed,
             "player2_y": self.player2.y,
-            "player2_yspeed": self.player2.y_speed,
+            "player2_y_speed": self.player2.y_speed,
             #"player2_flap": self.player2.flap,
         }
         return state
