@@ -270,7 +270,7 @@ class Joust(base.PyGameWrapper):
         self._draw_lives()
 
         pygame.display.update(rects)
-        for ru in [self.players, self.platforms, self.enemies, self.eggs]:
+        for ru in [self.player1_r, self.player2_r, self.platforms, self.enemies, self.eggs]:
             ru.clear(self.screen, self.clear_surface)
 
     def _update_platforms(self):

@@ -17,7 +17,7 @@ class Player(pygame.sprite.Sprite):
                 spawn_x = 600
                 spawn_y = 450
             else:
-                spawn_x = 600
+                spawn_x = 200
                 spawn_y = 450
         self.spawn_x = spawn_x
         self.spawn_y = spawn_y
