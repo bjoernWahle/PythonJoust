@@ -110,7 +110,7 @@ class Player(pygame.sprite.Sprite):
         if collided_player:
             for o_player in collided_player:
                 # check each bird to see if above or below
-                if self.alive and o_player.alive:
+                if self.alive == 2 and o_player.alive == 2:
                     if o_player.y > self.y:
                         self.bounce(o_player)
                         o_player.die(self.game.rewards['negative'])
