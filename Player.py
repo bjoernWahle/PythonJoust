@@ -121,7 +121,7 @@ class Player(pygame.sprite.Sprite):
                         self.bounce(o_player)
                         o_player.bounce(self)
                         o_player.score += self.game.rewards['positive']
-                        self.die(self.game.rewards['loss'])
+                        self.die(self.game.rewards['negative'])
                         break
                     else:
                         self.bounce(collided_player[0])
