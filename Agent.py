@@ -43,7 +43,7 @@ class NaiveAgent():
         self.nn = self._buildNN()
 
     def pick_action(self, state, rewards, time):
-        return np.random.randint(8)
+        return self._predict_action(state)
 
         # if time > 0 and  time % 10000 == 0:
         #     self.exploration_prob = self.exploration_prob*self.exploration_prob_decay
@@ -68,7 +68,7 @@ class NaiveAgent():
 
     def _buildNN(self):
         nn = keras.Sequential()
-        nn.add(Dense(units=len(self.actions), input_dim=self.state_space.shape))
+        nn.add(Dense(units=len(self.actions),activation="softmax", input_dim=self.state_space[1]))## input_shape=self.state_space.shape))
         nn.compile(loss='mse',
                    optimizer='adam')
 
