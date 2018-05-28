@@ -4,6 +4,10 @@ import numpy as np
 import logging
 
 
+def get_vector_length(x,y):
+    return math.sqrt(x**2 + y**2)
+
+
 class RuleBasedAgent():
     def __init__(self, player, actions, cooperating=True, log_level=logging.WARNING):
         self.player = player
@@ -37,20 +41,41 @@ class RuleBasedAgent():
         action_idx = None
         other_player = self.get_other_player_state(state)
 
+        # don't kill each other rule
         if self.cooperating:
             if self.distance_to(other_player['x'], other_player['y']) < 150.0:
-                reverted_x_speed, reverted_y_speed = self.get_reverted_vector(other_player['x'], other_player['y'])
-                if np.abs(reverted_x_speed) > np.abs(reverted_y_speed) or self.player.y < 50:
-                    if reverted_x_speed>0:
-                        action_idx = self.get_action_index("right")
-                    else:
-                        action_idx = self.get_action_index("left")
-                else:
-                    if reverted_y_speed>0:
-                        action_idx = self.get_action_index("noop")
-                        self.logger.info("Going down")
-                    else:
-                        action_idx = self.get_action_index("up")
+                action_idx = self.move_away_from(other_player['x'], other_player['y'])
+
+        enemies = self.player.game.get_enemies()
+        close_enemies = []
+        for enemy in enemies:
+            if enemy.alive:
+                dx, dy = self.get_distance_vector(enemy.x,enemy.y)
+                distance =get_vector_length(dx, dy)
+                if distance < 150.0:
+                    close_enemies.append((enemy, (dx,dy), distance))
+
+        # kill enemy rule: try to kill closest enemy below
+        closest_enemy_below = None
+        closest_below_distance = 9999
+        for enemy, (dx, dy), distance in close_enemies:
+            if dy > 0 and distance < closest_below_distance:
+                closest_enemy_below = enemy
+                closest_below_distance = distance
+        if closest_enemy_below is not None:
+            self.logger.info("I gonna kill that enemy!")
+            action_idx = self.move_towards(closest_enemy_below.x, closest_enemy_below.y)
+
+        # don't get killed rule: try to move away from closest enemy above
+        closest_enemy_above = None
+        closest_above_distance = 9999
+        for enemy, (dx, dy), distance in close_enemies:
+            if dy < 0 and distance < closest_above_distance:
+                closest_enemy_above = enemy
+                closest_above_distance = distance
+        if closest_enemy_above is not None:
+            self.logger.info("I gonna fly away from that enemy!")
+            action_idx = self.move_away_from(closest_enemy_above.x, closest_enemy_above.y)
 
         if self.player.y > 500:
             action_idx = self.get_action_index("up")
@@ -77,7 +102,40 @@ class RuleBasedAgent():
         return {'x': p_state[0], 'y': p_state[2], 'x_speed': p_state[1], 'y_speed': p_state[3]}
 
     def distance_to(self, o_x, o_y):
-        return math.sqrt(((self.player.x - o_x) ** 2) + ((self.player.y - o_y) ** 2))
+        dx, dy = self.get_distance_vector(o_x, o_y)
+        return get_vector_length(dx, dy)
 
     def get_reverted_vector(self, x, y):
-        return (x-self.player.x) * -1.0, (y-self.player.y) * -1.0
+        dx, dy = self.get_distance_vector(x, y)
+        return dx * -1.0, dy * -1.0
+
+    def move_away_from(self, o_x, o_y):
+        reverted_x_speed, reverted_y_speed = self.get_reverted_vector(o_x, o_y)
+        if np.abs(reverted_x_speed) > np.abs(reverted_y_speed) or self.player.y < 50:
+            if reverted_x_speed > 0:
+                action_idx = self.get_action_index("right")
+            else:
+                action_idx = self.get_action_index("left")
+        else:
+            if reverted_y_speed > 0:
+                action_idx = self.get_action_index("noop")
+            else:
+                action_idx = self.get_action_index("up")
+        return action_idx
+
+    def get_distance_vector(self, x, y):
+        return x - self.player.x, y- self.player.y
+
+    def move_towards(self, x, y):
+        dx, dy = self.get_distance_vector(x, y)
+        if np.abs(dx) > np.abs(dy) or self.player.y < 50:
+            if dx > 0:
+                action_idx = self.get_action_index("right")
+            else:
+                action_idx = self.get_action_index("left")
+        else:
+            if dy > 0:
+                action_idx = self.get_action_index("noop")
+            else:
+                action_idx = self.get_action_index("up")
+        return action_idx

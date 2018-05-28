@@ -52,6 +52,7 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.other_player_kill_count = 0
         self.enemy_kill_count = 0
+        self.has_won = False
 
     def reset_actions(self):
         self.actions = {
@@ -116,13 +117,13 @@ class Player(pygame.sprite.Sprite):
                         self.bounce(o_player)
                         o_player.die(self.game.rewards['negative'])
                         # TODO CHANGE FOR DEFLECTION ?
-                        self.score += self.game.rewards['positive']
+                        self.score += self.game.rewards['defect']
                         self.other_player_kill_count += 1
                         o_player.bounce(self)
                     elif o_player.y < self.y - 5:
                         self.bounce(o_player)
                         o_player.bounce(self)
-                        o_player.score += self.game.rewards['positive']
+                        o_player.score += self.game.rewards['defect']
                         o_player.other_player_kill_count += 1
                         self.die(self.game.rewards['negative'])
                         break
@@ -332,3 +333,8 @@ class Player(pygame.sprite.Sprite):
         self.walking = True
         self.spawning = True
         self.alive = 2
+
+    def set_won(self, value):
+        if value:
+            self.score += self.game.rewards['win']
+        self.has_won = value

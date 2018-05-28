@@ -25,7 +25,7 @@ class Joust(base.PyGameWrapper):
 
         if config is None:
             config = {
-                "enemy_count": 0,
+                "enemy_count": 2,
                 "max_speed": 10,
                 "initial_lives" : 1,
             }
@@ -58,6 +58,15 @@ class Joust(base.PyGameWrapper):
         self.player1 = Player(1, self, initial_lives=self.config['initial_lives'])
         self.player2 = Player(2, self, initial_lives=self.config['initial_lives'])
 
+        self.rewards = {
+            "positive": 10.0,
+            "tick": 0.0,
+            "defect": 5,
+            "cooperative" : 20,
+            "negative": -5,
+            "win": 0,
+            "loss": 0,
+        }
 
         # init sprites
         self._sprites = {
@@ -70,6 +79,8 @@ class Joust(base.PyGameWrapper):
         if self.display_screen:
             self.screen.fill((0, 0, 0))
             pygame.display.update()
+
+        self.cooperative_victory = False
         # init players
         self.player1.init()
         self.player2.init()
@@ -117,8 +128,14 @@ class Joust(base.PyGameWrapper):
             for enemy in self.enemies:
                 if enemy.alive:
                     return False
-            self.player1.score += self.rewards['win']
-            self.player2.score += self.rewards['win']
+            if self.player1.alive == 2:
+                self.player1.set_won(True)
+            if self.player2.alive == 2:
+                self.player2.set_won(True)
+            if self.player1.alive == 2 and self.player2.alive == 2:
+                self.player1.score += self.rewards['cooperative']
+                self.player2.score += self.rewards['cooperative']
+                self.cooperative_victory = True
             return True
         return False
 
@@ -298,3 +315,6 @@ class Joust(base.PyGameWrapper):
         lava_rect = [0, 600, 900, 50]
         lava_rect2 = [0, 620, 900, 30]
         return [pygame.draw.rect(self.screen, (255, 0, 0), lava_rect), pygame.draw.rect(self.screen, (255, 0, 0), lava_rect2)]
+
+    def was_cooperative_victory(self):
+        return self.cooperative_victory

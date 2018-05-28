@@ -7,7 +7,7 @@ from ple import PLE
 from sklearn.preprocessing import MinMaxScaler
 
 from Joust import Joust
-from test_agent import NaiveAgent
+from test_agent import DQNAgent
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -43,8 +43,8 @@ p = PLE(game, fps=30, display_screen=False, state_preprocessor=process_state, fo
 p.init()
 player1 = game.player1
 player2 = game.player2
-agent1 = NaiveAgent(player1, game.p1_actions, p.getGameStateDims(), log_level=logging.INFO)
-agent2 = NaiveAgent(player2, game.p2_actions, p.getGameStateDims(), log_level=logging.INFO)
+agent1 = DQNAgent(player1, game.p1_actions, p.getGameStateDims(), log_level=logging.INFO)
+agent2 = DQNAgent(player2, game.p2_actions, p.getGameStateDims(), log_level=logging.INFO)
 
 game.adjustRewards(
     {

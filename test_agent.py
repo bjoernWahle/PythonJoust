@@ -3,15 +3,10 @@ import keras
 from keras.layers import Dense
 import logging
 
-from qlearning_utils import Discretizer
 
-
-class NaiveAgent():
-    """
-            This is our naive agent. It picks actions at random!
-    """
-
-    def __init__(self, player, actions, state_space, train_start=0, exploration_prob_init=1, exploration_prob_train=0.2, exporation_prop_decay=0.9, y=0.95, log_level=logging.WARNING):
+class DQNAgent():
+    def __init__(self, player, actions, state_space, train_start=0, exploration_prob_init=1, exploration_prob_train=0.2,
+                 exporation_prop_decay=0.9, y=0.95, log_level=logging.WARNING):
         self.exploration_prob_train = exploration_prob_train
         self.player = player
         self.id = player.id
@@ -49,8 +44,8 @@ class NaiveAgent():
 
     def pick_action(self, state, rewards, time):
 
-        if time > 0 and  time % 10000 == 0:
-            self.exploration_prob = self.exploration_prob*self.exploration_prob_decay
+        if time > 0 and time % 10000 == 0:
+            self.exploration_prob = self.exploration_prob * self.exploration_prob_decay
             self.logger.info("Exploration prob decreased to %f" % self.exploration_prob)
 
         if self.player.alive == 2 and not self.player.spawning:
@@ -71,10 +66,9 @@ class NaiveAgent():
             self.last_action = None
             return self.actions[self.action_keys.index("p%i_noop" % self.id)]
 
-
     def _buildNN(self):
         nn = keras.Sequential()
-        nn.add(Dense(units=len(self.actions),activation="softmax", input_dim=self.state_space[1]))
+        nn.add(Dense(units=len(self.actions), activation="softmax", input_dim=self.state_space[1]))
         nn.compile(loss='mse',
                    optimizer='adam')
 
@@ -92,7 +86,8 @@ class NaiveAgent():
             # get own reward
             r = rewards[self.id - 1]
 
-            target = r + self.y * np.max(self.nn.predict(new_state)) - self.nn.predict(self.last_state)[0][self.last_action]
+            target = r + self.y * np.max(self.nn.predict(new_state)) - self.nn.predict(self.last_state)[0][
+                self.last_action]
             target_vec = self.nn.predict(self.last_state)[0]
             target_vec[self.last_action] = target
             self.nn.fit(self.last_state, target_vec.reshape(-1, len(self.actions)), epochs=1, verbose=False)
