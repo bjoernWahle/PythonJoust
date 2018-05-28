@@ -100,9 +100,6 @@ class Player(pygame.sprite.Sprite):
             collided = False
             for collided_platform in collided_platforms:
                 collided = self.bounce(collided_platform)
-            if collided:
-                # play a bump sound
-                self.player_channel.play(self.bumpsound)
         # check for egg collission
         collided_eggs = pygame.sprite.spritecollide(self, egg_list, False, collided=pygame.sprite.collide_mask)
         if len(collided_eggs) > 0:
@@ -160,7 +157,6 @@ class Player(pygame.sprite.Sprite):
                 if self.actions['up']:
                     #if not self.flap:
                     self.player_channel.stop()
-                    self.flapsound.play(0)
                     if self.y_speed > -250:
                         self.y_speed -= 2
                     self.flap = True
@@ -198,8 +194,6 @@ class Player(pygame.sprite.Sprite):
                             if (self.x_speed > 5 and self.actions['left']) or (
                                     self.x_speed < -5 and self.actions['right']):
 
-                                if self.frame_num != 4:
-                                    self.player_channel.play(self.skidsound)
                                 self.frame_num = 4
                             else:
                                 self.next_anim_time = current_time + 200 / abs(self.x_speed)

@@ -39,9 +39,8 @@ class RuleBasedAgent():
 
         if self.cooperating:
             if self.distance_to(other_player['x'], other_player['y']) < 150.0:
-                self.logger.info("I am close")
                 reverted_x_speed, reverted_y_speed = self.get_reverted_vector(other_player['x'], other_player['y'])
-                if reverted_x_speed > reverted_y_speed:
+                if np.abs(reverted_x_speed) > np.abs(reverted_y_speed) or self.player.y < 50:
                     if reverted_x_speed>0:
                         action_idx = self.get_action_index("right")
                     else:
@@ -49,6 +48,7 @@ class RuleBasedAgent():
                 else:
                     if reverted_y_speed>0:
                         action_idx = self.get_action_index("noop")
+                        self.logger.info("Going down")
                     else:
                         action_idx = self.get_action_index("up")
 

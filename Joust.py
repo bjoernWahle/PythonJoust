@@ -27,7 +27,7 @@ class Joust(base.PyGameWrapper):
             config = {
                 "enemy_count": 0,
                 "max_speed": 10,
-                "initial_lives" : 5,
+                "initial_lives" : 1,
             }
         self.config = config
 

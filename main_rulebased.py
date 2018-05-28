@@ -33,8 +33,8 @@ p = PLE(game, fps=30, display_screen=False, state_preprocessor=process_state, fo
 p.init()
 player1 = game.player1
 player2 = game.player2
-agent1 = RuleBasedAgent(player1, game.p1_actions, log_level=logging.INFO)
-agent2 = RuleBasedAgent(player2, game.p2_actions, cooperating=False, log_level=logging.INFO)
+agent1 = RuleBasedAgent(player1, game.p1_actions, cooperating=True, log_level=logging.INFO)
+agent2 = RuleBasedAgent(player2, game.p2_actions, cooperating=True, log_level=logging.INFO)
 
 game.adjustRewards(
     {
