@@ -21,7 +21,7 @@ class Player(pygame.sprite.Sprite):
                 spawn_y = 450
         self.spawn_x = spawn_x
         self.spawn_y = spawn_y
-        self.images = load_sliced_sprites(60, 60, "playerMounted.png")
+        self.images = load_sliced_sprites(60, 60, "playerMounted_%i.png"%self.id)
         self.unmounted_images = load_sliced_sprites(60, 60, "unmounted.png")
         self.spawnimages = load_sliced_sprites(60, 60, "spawn1.png")
         self.player_channel = pygame.mixer.Channel(0)
