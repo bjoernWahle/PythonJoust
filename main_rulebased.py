@@ -55,6 +55,9 @@ train_start = 1000
 r1_list = []
 r2_list = []
 
+p1_kills = []
+p2_kills = []
+
 for epoch in range(num_epoch):
     for f in range(nb_frames):
         if p.game_over():  # check if the game is over
@@ -84,15 +87,23 @@ for epoch in range(num_epoch):
     r2_list.append(final_reward2)
     agent2.rewards = []
 
+    # save player kill counts
+    p1_kills.append(agent1.player.other_player_kill_count)
+    p2_kills.append(agent2.player.other_player_kill_count)
+
     p.reset_game()
     print("End epoch %i" % epoch)
 
 plt.plot(range(num_epoch), r1_list, color='red')
 plt.plot(range(num_epoch), r2_list, color='blue')
 plt.grid()
+plt.title("Reward evolution")
 plt.xlabel("Epoch")
 plt.ylabel("Reward")
 plt.show()
+
+print("Player 1 killed player 2 %i times" % np.sum(np.array(p1_kills)))
+print("Player 2 killed player 1 %i times" % np.sum(np.array(p2_kills)))
 
 pygame.quit()
 sys.exit()

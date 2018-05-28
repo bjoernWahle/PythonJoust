@@ -13,10 +13,7 @@ from sprites import load_sliced_sprites, load_sprite
 import numpy as np
 
 
-# TODO add player-player collisions
 # TODO complete getGameState method
-# TODO use with ple-gym (https://github.com/lusob/gym-ple)
-# TODO figure out how headless works
 class Joust(base.PyGameWrapper):
 
     def __init__(self, width=900, height=650, config=None, display_screen=True):
